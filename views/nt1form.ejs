@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title><%= header %></title>
+</head>
+<body>
+	<%- include partials/nt1header %>
+	<form id="form" action="/math" name="form" method="POST">
+		<input type="number" name="first">
+		<select name='math'>
+			<option name='math' value="+">+</option>
+			<option name='math' value="-">-</option>
+			<option name='math' value="*">*</option>
+			<option name='math' value="/">/</option>
+		</select>
+		<input type="number" name="second">
+		<button type="submit">Submit</button>
+		<button type="button" onclick="getMath()">Ajax Result</button>
+		<p id="result"></p>
+	</form>
+	<script type="text/javascript">
+		function getMath() {
+			console.log("getMath()");
+			var first = document.forms['form']['first'].value;
+			var math = document.forms['form']['math'].value;
+			var second = document.forms['form']['second'].value;
+			console.log(first + math + second);
+
+			var request = {first:first, math:math, second:second};
+			console.log(request);
+
+			var xhttp = new XMLHttpRequest();
+		    xhttp.onreadystatechange = function() {
+		    	if (this.readyState == 4 && this.status == 200) {
+		    		console.log(this.responseText);	
+		    		var result = JSON.parse(this.responseText);
+		    		console.log(result);
+		    		var resultText = result.first + " " + result.math + " " + result.second + " = " + result.total;
+		      		document.getElementById("result").innerHTML = resultText;
+		    	}
+		    };
+		    xhttp.open("POST", "/math_service", true);
+		    xhttp.setRequestHeader("Content-Type", "application/json");
+		    xhttp.send(JSON.stringify(request));
+		}
+	</script>
+</body>
+</html>

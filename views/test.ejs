@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Testing EJS</title>
+</head>
+<body>
+	<%- include partials/header.ejs %>
+
+	<p>Your name is <%= name %></p>
+
+	<% list.forEach(function(item) { %>
+        <li><%= item.name %> - <%= item.weight %></li>
+    <% }); %>
+
+	<%- include partials/footer %>
+</body>
+</html>
+
+  <!-- + `if`+`TAB` - Inserts EJS `if` statement
+  + `for`+`TAB` - Inserts EJS `for` loop -->

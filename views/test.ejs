@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Testing EJS</title>
+	<%- include partials/head.ejs %>
 </head>
 <body>
 	<%- include partials/header.ejs %>
@@ -12,7 +12,6 @@
         <li><%= item.name %> - <%= item.weight %></li>
     <% }); %>
 
-	<%- include partials/footer %>
 </body>
 </html>
 

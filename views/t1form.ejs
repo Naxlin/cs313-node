@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<%- include partials/head %>
+	<%- include partials/head.ejs %>
 </head>
 <body>
-	<%- include partials/header %>
+	<%- include partials/header.ejs %>
 	<form id="form" action="/math" name="form" method="POST">
-		<input type="number" name="first">
-		<select name='math'>
+		<input type="number" name="first" required>
+		<select name='math' required>
 			<option name='math' value="+">+</option>
 			<option name='math' value="-">-</option>
 			<option name='math' value="*">*</option>
 			<option name='math' value="/">/</option>
 		</select>
-		<input type="number" name="second">
+		<input type="number" name="second" required>
 		<button type="submit">Submit</button>
 		<button type="button" onclick="getMath()">Ajax Result</button>
 		<p id="result"></p>

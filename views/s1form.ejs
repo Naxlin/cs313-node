@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<%- include partials/head.ejs %>
+</head>
+<body>
+	<%- include partials/header.ejs %>
+	<div class="body-container">
+		<form id="form" action="/postage" name="form" method="POST">
+			<label for="oz">Mail Item Weight: </label>
+			<input id="oz" type="number" name="oz"><br><br>
+			<select name='service'>
+				<option name='service' value="1">Letters (Stamped)</option>
+				<option name='service' value="2">Letters (Metered)</option>
+				<option name='service' value="3">Large Envelopes (Flats)</option>
+				<option name='service' value="4">First-Class Package Service—Retail</option>
+			</select><br><br>
+			<button type="submit">Find Price</button>
+			<p id="result"></p>
+		</form>
+	</div>
+</body>
+</html>

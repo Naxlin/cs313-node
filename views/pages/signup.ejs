@@ -1,0 +1,37 @@
+<div id="signup" class="page-container-hidden">
+	<h2>Sign Up</h2>
+	<br>
+	<div id="signinError" class="error-hidden">
+		<p class="error">Error signing in, do you have an account? If so try again, if not sign up below!</p>
+		<br>
+	</div>
+	<div id="signupErrorDifPas" class="error-hidden">
+		<p class="error">Error, your passwords were different. Please retype them.</p>
+		<br>
+	</div>
+	<div id="signupErrorUser" class="error-hidden">
+		<p class="error">Error, username required.</p>
+		<br>
+	</div>
+	<div id="signupErrorUsrTkn" class="error-hidden">
+		<p class="error">Error, that username is taken. Please choose another.</p>
+		<br>
+	</div>
+		<div id="signupErrorPass" class="error-hidden">
+		<p class="error">Error, passwords must be at least 8 characters long and contain a number. Please choose another.</p>
+		<br>
+	</div>
+	<label for="newUser">Username: </label>
+	<input id="newUser" type="text" name="newUser" placeholder="Username">
+	<br>
+	<br>
+	<label for="newPass">Password: </label>
+	<input id="newPass" type="password" name="newPass" placeholder="Password">
+	<br>
+	<br>
+	<label for="passConf">Confirm: </label>
+	<input id="passConf" type="password" name="passConf" placeholder="Confirm">
+	<br>
+	<br>
+	<button type="button" onclick="signup()">Sign Up</button>
+</div>

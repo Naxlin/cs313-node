@@ -1,4 +1,8 @@
 // GENERAL REQUIRES
+require('dotenv').config();
+const connectionString = process.env.DATABASE_URL
+const { Pool } = require('pg');
+const pool = new Pool({connectionString: connectionString});
 const express = require('express');
 const path = require('path');
 const app = express();
@@ -11,9 +15,12 @@ app.use(express.static('public'));
 app.use(express.urlencoded());
 app.use(express.json());
 
+// PROJECT MODULE:
+app.use(require('./project_modules/project2.js'));
+
 // TEAM MODULES:
 app.use(require('./team_modules/team01.js'));
-// app.use(require('./team_modules/team02.js'));
+app.use(require('./team_modules/team02.js'));
 
 // SOLO MODULES:
 app.use(require('./solo_modules/solo01.js'));
@@ -39,13 +46,21 @@ app.get('/test', function(req, res) {
 })
 // 500 - response for 500 errors
 app.use(function (err, req, res, next) {
-  console.error(err.stack)
-  res.status(500).send('500: Something broke!')
+  console.error(err.stack);
+  res.status(500).send('500: Something broke!');
 })
 // 404 - response for 404 errors
 app.use(function (req, res, next) {
-  res.status(404).send("404: Sorry can't find that!")
+  res.status(404).send("404: Sorry can't find that!");
 })
+
+// Database Interaction
+// pool.query('SELECT * FROM person', (err, res) => {
+//   console.log('person:', res.rows[0]);
+//   console.log('person:', res.rows[1]);
+// })
+
+
 
 // STARTING SERVER!
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

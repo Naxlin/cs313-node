@@ -1,0 +1,59 @@
+<div id="tvshow" class="page-container-hidden">
+	<h2>Add a TV Series to Your List</h2>
+	<br>
+	<!-- Put a select statement here of all the shows.
+		 When a show is selected here change the data in the
+		 input fields to reflect it, and change the button
+		 for 'add show' for a different button called 'update show' -->
+	<label for="showname">Show Name: </label>
+	<input id="showname" type="text" placeholder="Show Name">
+	<br>
+	<br>
+	<label>Show Description: </label>
+	<br>
+	<textarea id="showdesc" placeholder="Show Description" rows="6" cols="60"></textarea>
+	<br>
+	<br>
+	<!-- Eventually update this to upload a photo. -->
+	<label for="showimg">Show Image: </label>
+	<input id="showimg" type="text" placeholder="URL to show image">
+	<br>
+	<br>
+	<label for="episodes">Episodes: </label>
+	<input id="episodes" type="number" placeholder="Total show episodes?">
+	<br>
+	<br>
+	<label for="watched">Watched: </label>
+	<input id="watched" type="number" placeholder="Episodes watched?">
+	<br>
+	<br>
+	<label for="length">Episode Length: </label>
+	<input id="length" type="number" placeholder="How long are they?">
+	<br>
+	<br>
+	<input id="ongoing" type="checkbox">
+	<label for="ongoing" class="checklabel">Ongoing?</label>
+	<br>
+	<br>
+	
+	<div id="genreErrorAdd" class="error-hidden">
+		<p class="error">Error adding genre, this genre already exists!</p>
+		<br>
+	</div>
+	<label>Genres: </label>
+	<ul id="genrelist">
+	</ul>
+	<label id="newgenrelabel" style="display: none;">Recently Added: </label>
+	<ul id="newgenrelist">
+	</ul>
+	<br>
+
+	<label for="newgenre">New Genre: </label>
+	<input id="newgenre" type="text" placeholder="Genre Name">
+	<button type="button" onclick="addGenre()">Add Genre</button>
+
+	<br>
+	<br>
+	<button id="addShow" type="button" onclick="addShow()">Add Show</button>
+	<button id="updateShow" type="button" onclick="updateShow()" style="display: none;">Update Show</button>
+</div>

@@ -4,7 +4,7 @@
       <a href="/"><span class="glyphicon glyphicon-home"></span> Home</a>
     </li>
     <li>
-      <a href="https://devcenter.heroku.com/articles/how-heroku-works"><span class="glyphicon glyphicon-user"></span> Project 2 </a>
+      <a href="/project2"><span class="glyphicon glyphicon-user"></span> Project 2 </a>
     </li>
     <li class="dropdown">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-info-sign"></span> Solo Activities <span class="caret"></span></a>
@@ -17,13 +17,14 @@
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-info-sign"></span> Team Activities <span class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
           <li><a href="/team01">Math Form</a></li>
-          <!-- <li class="divider"></li> -->
+          <li><a href="/team02">Family Form</a></li>
         </ul>
     </li>
   </ul>
-  <!-- <ul class="nav navbar-nav navbar-right">
+  <ul class="nav navbar-nav navbar-right">
     <li class="navbar-right">
-      <a href="https://devcenter.heroku.com"><span class="glyphicon glyphicon-book"></span> Heroku Dev Center</a>
+      <%- include signin.ejs %>
+      <%- include signedin.ejs %>
     </li>
-  </ul> -->
+  </ul>
 </nav>

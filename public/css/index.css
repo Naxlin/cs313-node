@@ -1,8 +1,68 @@
+body {
+	overflow-x: hidden;
+}
+
 h1 {
 	margin-bottom: 20px;
+}
+
+li {
+	list-style-type: none;
 }
 
 .body-container, h1 {
 	margin-left: 10px;
 }
 
+.checklabel {
+	margin-left: 10px;
+}
+
+.error {
+    background-color: orange;
+    border: 2px solid black;
+    font-weight: bold;
+    padding: 4px;
+    padding-left: 6px;
+    width: 600px;
+}
+
+.error-border {
+	border: 2px solid red;
+}
+
+.error-hidden {
+	display: none;
+}
+
+.page-container {
+
+}
+
+.page-container-hidden {
+	display: none;
+}
+
+.signin {
+	margin-top: 12px;
+	color: white;
+}
+
+.signin input {
+	color: black;
+}
+
+.signin-button {
+	color: black;
+	margin-right: 40px;
+}
+
+.signin-hidden {
+	display: none;
+}
+
+.space-right {
+	margin-right: 40px;
+}
+
+/*http://localhost:3000/*/

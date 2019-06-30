@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<%- include partials/head.ejs %>
+</head>
+<body>
+	<%- include partials/header.ejs %>
+
+	<div class="body-container">
+		<label for="personid">Person ID: </label>
+		<input type="number" name="personid" id="personid">
+		<button onclick="getStuff('/getPerson')">Get Details</button>
+		<button onclick="getStuff('/getParents')">Get Parents</button>
+		<button onclick="getStuff('/getChildren')">Get Children</button>
+
+		<br><p id="results"></p>
+	</div>
+
+	<script type="text/javascript">
+		function getStuff(queryName) {
+
+			var xhttp = new XMLHttpRequest();
+		    xhttp.onreadystatechange = function(queryName) {
+		    	if (this.readyState == 4 && this.status == 200) {
+		    		console.log(this.responseText);
+		    		var res = JSON.parse(this.responseText);
+		    		var log = document.getElementById('results');
+
+		    		if (res.getPerson != undefined) {
+		    			var per = res.getPerson;
+		    			log.innerHTML = '<h4>Person Details</h4>';
+			    		log.innerHTML += '<p>First Name: ' + per[0].personfirstname + '</p>';
+			    		log.innerHTML += '<p>Last Name: ' + per[0].personlastname + '</p>';
+			    		if (per[0].dob != null) {
+				    		log.innerHTML += '<p>Date of Birth: ' + per[0].dob + '</p>';
+			    		}
+		    		} else if (res.getParents != undefined) {
+		    			var par = res.getParents;
+		    			log.innerHTML = '<h4>Father</h4>';
+			    		log.innerHTML += '<p>First Name: ' + par[0].personfirstname + '</p>';
+			    		log.innerHTML += '<p>Last Name: ' + par[0].personlastname + '</p>';
+			    		if (par[0].dob != null) {
+				    		log.innerHTML += '<p>Date of Birth: ' + par[0].dob + '</p>';
+			    		}
+		    			log.innerHTML += '<br><h4>Mother</h4>';
+			    		log.innerHTML += '<p>First Name: ' + par[1].personfirstname + '</p>';
+			    		log.innerHTML += '<p>Last Name: ' + par[1].personlastname + '</p>';
+			    		if (par[1].dob != null) {
+				    		log.innerHTML += '<p>Date of Birth: ' + par[1].dob + '</p>';
+			    		}
+		    		} else if (res.getChildren != undefined) {
+		    			var chil = res.getChildren;
+		    			log.innerHTML = '<h4>Children</h4>';
+		    			chil.forEach(function (item) {
+			    			log.innerHTML += '<p>First Name: ' + item.personfirstname + '</p>';
+				    		log.innerHTML += '<p>Last Name: ' + item.personlastname + '</p>';
+				    		if (item.dob != null) {
+					    		log.innerHTML += '<p>Date of Birth: ' + item.dob + '</p>';
+				    		}
+			    		})
+		    		}
+		    	}
+		    };
+
+		    console.log(document.getElementById('personid').value);
+
+		    xhttp.open("GET", queryName + "?personid=" + document.getElementById('personid').value, true);
+		    //xhttp.setRequestHeader("Content-Type", "application/json");
+		    xhttp.send();
+		}
+	</script>
+</body>
+</html>
+
+  <!-- + `if`+`TAB` - Inserts EJS `if` statement
+  + `for`+`TAB` - Inserts EJS `for` loop -->

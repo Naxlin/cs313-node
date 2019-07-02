@@ -114,6 +114,14 @@ function signup() {
     		console.log(this.responseText);
     		var res = JSON.parse(this.responseText);
 			goTo('yourlist');
+			var active = getClass('signin');
+			var inactive = getClass('signin-hidden');
+			getId('username').innerHTML = '<b>' + res.user + '</b>';
+			addClass(active, 'signin-hidden');
+			active.classList.remove('signin');
+			addClass(inactive, 'signin');
+			inactive.classList.remove('signin-hidden');
+			addClass(getId('signinError'), 'error-hidden');
     	}
     };
     xhttp.open("POST", "project2/signup", true);
@@ -169,6 +177,7 @@ function goTo(page) {
 		getId('header').innerHTML = 'Create an Account!';		
 	} else if (page == 'tvshow') {
 		getGenres();
+		getShows();
 	}
 }
 
@@ -180,7 +189,9 @@ function getGenres() {
     		var res = JSON.parse(this.responseText);
     		if (res.genres != 'failed') {
     			getId('genrelist').innerHTML = '';
-    			res.genres.forEach(function (item) {
+				getId('newgenrelabel').style.display = 'none';
+				getId('newgenrelist').innerHTML = '';
+				res.genres.forEach(function (item) {
     				getId('genrelist').innerHTML += '<li><input type="' + 
 						'checkbox" name="genres[]" value="' +
 						item.genrename + '"><label class="checklabel">' + 
@@ -190,6 +201,24 @@ function getGenres() {
     	}
     };
     xhttp.open("GET", "project2/getGenres", true);
+    xhttp.send();
+}
+
+function getShows() {
+	var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+    	if (this.readyState == 4 && this.status == 200) {
+    		var res = JSON.parse(this.responseText);
+    		if (res.shows != 'failed') {
+    			getId('showsEdit').innerHTML = '';
+				res.shows.forEach(function (item) {
+    				getId('showsEdit').innerHTML += '<option value="0" selected>New Show</option>' +
+    					'<option value="' + item.showid + '">' + item.showname + '</option>';
+    			})
+    		}
+    	}
+    };
+    xhttp.open("GET", "project2/getShows", true);
     xhttp.send();
 }
 
@@ -287,4 +316,17 @@ function addShow() {
 
 function updateShow() {
 	// body...
+}
+
+// Toggle between updateShow and addShow
+function toggleShowAddorUpdate(id) {
+	var select = getId(id);
+
+	if (select.options[select.selectedIndex].value == 0) {
+		getId('updateShow').style.display = "none";
+		getId('addShow').style.display = "inline-block";
+	} else {
+		getId('updateShow').style.display = "inline-block";
+		getId('addShow').style.display = "none";		
+	}
 }

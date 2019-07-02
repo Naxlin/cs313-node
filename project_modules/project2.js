@@ -37,7 +37,7 @@ router.get('/project2/signin', function(req, res) {
 		} else {
 			res.end(JSON.stringify({'user': 'invalid'}));
 		}
-	})
+	});
 });
 
 router.post('/project2/signup', function(req, res) {
@@ -58,7 +58,7 @@ router.post('/project2/signup', function(req, res) {
 			res.end(JSON.stringify({'user': req.body.user}));
 			sessionId = req.body.user;
 		}
-	})
+	});
 
 });
 
@@ -70,19 +70,29 @@ router.get('/project2/userExists', function(req, res) {
 		} else {
 			res.end(JSON.stringify({'user': 'invalid'}));
 		}
-	})
+	});
 });
 
 router.get('/project2/getGenres', function(req, res) {
 	res.setHeader('Content-Type', 'application/json');
 	pool.query('SELECT genrename FROM genres ORDER BY genrename ASC', (err, resp) => {
-		console.log(resp.rows);
 		if (resp.rows[0] != undefined) {
 			res.end(JSON.stringify({'genres': resp.rows}));
 		} else {
 			res.end(JSON.stringify({'genres': 'failed'}));
 		}
-	})
+	});
+});
+
+router.get('/project2/getShows', function(req, res) {
+	res.setHeader('Content-Type', 'application/json');
+	pool.query('SELECT showid, showname FROM shows ORDER BY genrename ASC', (err, resp) => {
+		if (resp.rows[0] != undefined) {
+			res.end(JSON.stringify({'shows': resp.rows}));
+		} else {
+			res.end(JSON.stringify({'shows': 'failed'}));
+		}
+	});
 });
 
 router.post('/project2/addGenre', function(req, res) {
@@ -96,11 +106,11 @@ router.post('/project2/addGenre', function(req, res) {
 				} else {
 					res.end(JSON.stringify({'insert': req.body.genre}));
 				}
-			})
+			});
 		} else {
 			res.end(JSON.stringify({'insert': 'taken'}));
 		}
-	})
+	});
 });
 
 router.post('/project2/addShow', function(req, res) {
@@ -118,6 +128,7 @@ router.post('/project2/addShow', function(req, res) {
 	var userid = 0;
 	var showid = 0;
 	console.log(inputs);
+	// NOTE: I should change this to sync instead of async since these functions require each other's responses.
 	pool.query('INSERT INTO shows (showname, showdesc, episodes, showimg, episodelength, ongoing) VALUES ($1, $2, $3, $4, $5, $6)', inputs, (err, resp) => {
 		if (err) {
 			console.log(err);
@@ -125,69 +136,67 @@ router.post('/project2/addShow', function(req, res) {
 		} else {
 			console.log('Successful shows Insert.');
 		}
-	})
 
-	// Getting userid for watched table insert
-	pool.query('SELECT userid FROM users WHERE username = $1', [req.body.username], (err, resp) => {
-		if (err) {
-			console.log(err);
-			res.end(JSON.stringify({'insert': 'failed'}));
-		} else {
-			console.log(resp);
-			userid = resp.rows[0].userid;
-		}
-	})
-	console.log(userid);
-
-	// Getting showid for watched and showgenres table inserts
-	pool.query('SELECT showid FROM shows WHERE showname = $1', [req.body.show], (err, resp) => {
-		if (err) {
-			console.log(err);
-			res.end(JSON.stringify({'insert': 'failed'}));
-		} else {
-			console.log(resp);
-			showid = resp.rows[0].showid;
-		}
-	})
-	console.log(showid);
-
-	// Inserting into watched
-	inputs = [userid, showid, req.body.watched != '' ? req.body.watched : 0];
-	pool.query('INSERT INTO watched (userid, showid, watched) VALUES ($1, $2, $3)', inputs, (err, resp) => {
-		if (err) {
-			console.log(err);
-			res.end(JSON.stringify({'insert': 'failed'}));
-		} else {
-			console.log('Successful watched Insert.');
-		}
-	})
-
-	// Getting genre ids for showgenres table insert
-	var genreids = [];
-	req.body.genres.forEach(function (genre) {
-		pool.query('SELECT genreid FROM genres WHERE genrename = $1', [genre], (err, resp) => {
+		// Getting userid for watched table insert
+		pool.query('SELECT userid FROM users WHERE username = $1', [req.body.user], (err, resp) => {
 			if (err) {
 				console.log(err);
 				res.end(JSON.stringify({'insert': 'failed'}));
 			} else {
-				genreids.push(resp.rows[0].genreid);
+				userid = resp.rows[0].userid;
+				console.log("User ID: " + userid);
 			}
-		})
-	})
-	console.log(genreids);
+			// Getting showid for watched and showgenres table inserts
+			pool.query('SELECT showid FROM shows WHERE showname = $1', [req.body.show], (err, resp) => {
+				if (err) {
+					console.log(err);
+					res.end(JSON.stringify({'insert': 'failed'}));
+				} else {
+					showid = resp.rows[0].showid;
+					console.log("Show ID: " + showid);
+				}
 
-	// Inserting into showgenres
-	genreids.forEach(function (id) {
-		inputs = [showid, id];
-		pool.query('INSERT INTO showgenres (showid, genreid) VALUES ($1, $2)', inputs, (err, resp) => {
-			if (err) {
-				console.log(err);
-				res.end(JSON.stringify({'insert': 'failed'}));
-			} else {
-				console.log('Successful showgenres Insert.');
-			}
-		})	
-	})
+				// Inserting into watched
+				inputs = [userid, showid, req.body.watched != '' ? req.body.watched : 0];
+				pool.query('INSERT INTO watched (userid, showid, watched) VALUES ($1, $2, $3)', inputs, (err, resp) => {
+					if (err) {
+						console.log(err);
+						res.end(JSON.stringify({'insert': 'failed'}));
+					} else {
+						console.log('Successful watched Insert.');
+					}
+				});
+			});
+		});
+
+		// Getting genre ids for showgenres table insert
+		var genreids = [];
+		req.body.genres.forEach(function (genre) {
+			pool.query('SELECT genreid FROM genres WHERE genrename = $1', [genre], (err, resp) => {
+				if (err) {
+					console.log(err);
+					res.end(JSON.stringify({'insert': 'failed'}));
+				} 
+
+				// Inserting into showgenres
+				// genreids.forEach(function (id) {
+				inputs = [showid, resp.rows[0].genreid];
+				pool.query('INSERT INTO showgenres (showid, genreid) VALUES ($1, $2)', inputs, (err, resp) => {
+					if (err) {
+						console.log(err);
+						res.end(JSON.stringify({'insert': 'failed'}));
+					} else {
+						console.log('Successful showgenres Insert.');
+					}
+			    // });
+				});
+			});
+		});
+	});
+
+	
+
+	
 
 	res.end(JSON.stringify({'insert': 'success'}));
 });

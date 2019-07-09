@@ -1,15 +1,24 @@
 <div id="tvshow" class="page-container-hidden">
 	<h2>Add a TV Series to Your List</h2>
 	<br>
-	<label for="showsEdit">Existing Shows: </label>
-	<select id="showsEdit" onchange="toggleShowAddorUpdate(this.id)">
-		<option value="0" selected>New Show</option>
-		<!-- The other values will be the id for the show -->
-	</select>
-	<br>
+	<div id="newShowContainer" style="display: none;">
+		<h4>Add a New Show</h4>
+		<p>This will go to a new show page, clearing all fields.</p>
+		<button type="button" onclick="switch2Show(0)">New Show</button>
+		<br>
+		<br>
+	</div>
+	<div id="showsEditContainer">
+		<h4>Shows We Have</h4>
+		<p>This will update as you type in a show name below.</p>
+		<ul id="showsEdit">
+		</ul>
+		<br>
+		<br>
+	</div>
 	<br>
 	<label for="showname">Show Name: </label>
-	<input id="showname" type="text" placeholder="Show Name">
+	<input id="showname" type="text" placeholder="Show Name" onkeyup="getShows(this.value)">
 	<br>
 	<br>
 	<label>Show Description: </label>

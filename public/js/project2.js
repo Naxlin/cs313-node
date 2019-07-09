@@ -1,3 +1,6 @@
+// Global variables:
+var selectedShowId = 0;
+
 // Utility functions:
 function getId(id) {
 	return document.getElementById(id);
@@ -173,6 +176,7 @@ function goTo(page) {
 
 	if (page == 'yourlist') {
 		getId('header').innerHTML = 'TV Shows You\'ve Watched!';
+		getYourlist();
 	} else if (page == 'signup') {
 		getId('header').innerHTML = 'Create an Account!';		
 	} else if (page == 'tvshow') {
@@ -196,6 +200,7 @@ function getGenres() {
 						'checkbox" name="genres[]" value="' +
 						item.genrename + '"><label class="checklabel">' + 
 						item.genrename + '</label></li>';
+						
     			})
     		}
     	}
@@ -204,21 +209,23 @@ function getGenres() {
     xhttp.send();
 }
 
-function getShows() {
+function getShows(show = 'allShows') {
 	var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
     	if (this.readyState == 4 && this.status == 200) {
     		var res = JSON.parse(this.responseText);
     		if (res.shows != 'failed') {
-    			getId('showsEdit').innerHTML = '';
+    			toggleShowAddorUpdate(true, true);
+				getId('showsEdit').innerHTML = '';
 				res.shows.forEach(function (item) {
-    				getId('showsEdit').innerHTML += '<option value="0" selected>New Show</option>' +
-    					'<option value="' + item.showid + '">' + item.showname + '</option>';
+    				getId('showsEdit').innerHTML += '<li><button type="button" onclick="switch2Show(' + item.showid + ')">' + item.showname + '</button></li><br>';
     			})
+    		} else {
+    			toggleShowAddorUpdate(false, false);
     		}
     	}
     };
-    xhttp.open("GET", "project2/getShows", true);
+    xhttp.open("GET", "project2/getShows?show=" + show, true);
     xhttp.send();
 }
 
@@ -254,6 +261,49 @@ function addGenre() {
 }
 
 function addShow() {
+	console.log("Add Show");
+	var request = getDOMShowVars();
+
+	console.log(request);
+
+	var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+    	if (this.readyState == 4 && this.status == 200) {
+    		console.log(this.responseText);
+    		var res = JSON.parse(this.responseText);
+			goTo('yourlist');
+			clearFields();
+    	}
+    };
+    xhttp.open("POST", "project2/addShow", true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.send(JSON.stringify(request));
+}
+
+// Updates the show with the new values when the "Update Show" button is clicked.
+function updateShow() {
+	console.log("Update Show");
+	var request = getDOMShowVars();
+	request.showid = selectedShowId;
+
+	console.log(request);
+
+	var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+    	if (this.readyState == 4 && this.status == 200) {
+    		console.log(this.responseText);
+    		var res = JSON.parse(this.responseText);
+			goTo('yourlist');
+			toggleShowAddorUpdate(true, true);
+			clearFields();
+    	}
+    };
+    xhttp.open("POST", "project2/updateShow", true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.send(JSON.stringify(request));
+}
+
+function getDOMShowVars() {
 	var show = getId('showname');
 	var desc = getId('showdesc');
 	var img = getId('showimg');
@@ -299,34 +349,144 @@ function addShow() {
 		genres: genres
 	};
 
-	console.log(request);
-
-	var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-    	if (this.readyState == 4 && this.status == 200) {
-    		console.log(this.responseText);
-    		var res = JSON.parse(this.responseText);
-			goTo('yourlist');
-    	}
-    };
-    xhttp.open("POST", "project2/addShow", true);
-    xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.send(JSON.stringify(request));
-}
-
-function updateShow() {
-	// body...
+	return request;
 }
 
 // Toggle between updateShow and addShow
-function toggleShowAddorUpdate(id) {
-	var select = getId(id);
-
-	if (select.options[select.selectedIndex].value == 0) {
-		getId('updateShow').style.display = "none";
-		getId('addShow').style.display = "inline-block";
+function toggleShowAddorUpdate(isNew, changeButtons) {
+	if (isNew) {
+		getId('showsEditContainer').style.display = 'inline-block';
+		getId('newShowContainer').style.display = 'none';
+		if (changeButtons) {
+			getId('updateShow').style.display = "none";
+			getId('addShow').style.display = "inline-block";
+		}
 	} else {
-		getId('updateShow').style.display = "inline-block";
-		getId('addShow').style.display = "none";		
+		getId('showsEditContainer').style.display = 'none';
+		getId('newShowContainer').style.display = 'inline-block';
+		if (changeButtons) {
+			getId('updateShow').style.display = "inline-block";
+			getId('addShow').style.display = "none";		
+		}
 	}
 }
+
+function switch2Show(showid) {
+	if (showid == 0) {
+		toggleShowAddorUpdate(true, true);
+		clearFields();
+	} else {
+		toggleShowAddorUpdate(false, true);
+		var xhttp = new XMLHttpRequest();
+	    xhttp.onreadystatechange = function() {
+	    	if (this.readyState == 4 && this.status == 200) {
+	    		var res = JSON.parse(this.responseText);
+	    		if (res.show != 'failed' && res.watched != undefined) {
+	    			fillFields(res.show, res.watched);
+	    		} else if (res.show != 'failed') {
+	    			fillFields(res.show);
+	    		}
+	    	}
+	    };
+
+	    var user = getId('username').children[0].innerHTML;
+	    xhttp.open("GET", "project2/getShow?id=" + showid + '&user=' + user, true);
+	    xhttp.send();
+
+	    var xhttp = new XMLHttpRequest();
+	    xhttp.onreadystatechange = function() {
+	    	if (this.readyState == 4 && this.status == 200) {
+	    		var res = JSON.parse(this.responseText);
+	    		console.log(res);
+	    		if (res.genres != 'failed') {
+	    			checkGenres(res.genres);
+	    		}
+	    	}
+	    };
+
+	    xhttp.open("GET", "project2/getShowGenres?id=" + showid, true);
+	    xhttp.send();
+	}
+}
+
+// Clears show fields
+function clearFields() {
+	getShows();
+	getId('showname').value = '';
+	getId('showdesc').value = '';
+	getId('showimg').value = '';
+	getId('episodes').value = '';
+	getId('watched').value = '';
+	getId('length').value = '';
+	getId('ongoing').selected = false;
+	getGenres();
+}
+
+// Fills show fields
+function fillFields(show, watched = {watched: ''}) {
+	selectedShowId = show.showid
+	getId('showname').value = show.showname;
+	getId('showdesc').value = show.showdesc;
+	getId('showimg').value = show.showimg;
+	getId('episodes').value = show.episodes;
+	getId('watched').value = watched.watched;
+	getId('length').value = show.episodelength;
+	getId('ongoing').checked = show.ongoing;
+}
+
+// Checks the genre fields
+function checkGenres(genres) {
+	genres.forEach(function (genre) {
+		console.log(genre);
+		document.querySelector("input[type='checkbox'][value='" + genre + "']").checked = true;
+	})
+}
+
+// Get the list of all shows
+function getPopular() {
+	var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+    	if (this.readyState == 4 && this.status == 200) {
+    		var res = JSON.parse(this.responseText);
+    		console.log(res);
+    		var list = getId('popular-container');
+			list.innerHTML = '';
+    		res.shows.forEach(function (show) {
+    			list.innerHTML += '<li><span class="bold">' + show.showname +
+    							  ': </span> <span>Episodes - ' + show.episodes + 
+    							  '</span> <span>Episode Length - ' + show.episodelength +
+    							  ' min</span></li>';
+    		});
+    	}
+    };
+
+    xhttp.open("GET", "project2/getPopular", true);
+    xhttp.send();
+}
+
+// Get the list for the username
+function getYourlist() {
+	var user = getId('username').children[0].innerHTML;
+
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+    	if (this.readyState == 4 && this.status == 200) {
+    		var res = JSON.parse(this.responseText);
+    		console.log(res);
+    		var list = getId('yourlist-container');
+			list.innerHTML = '';
+    		res.shows.forEach(function (show) {
+    			list.innerHTML += '<li><span class="bold">' + show.showname +
+    							  ': </span> <span>Episodes watched - ' + show.watched +
+    							  '/' + show.episodes + '</span> <span>Repeats - ' + 
+    							  show.repeated + '</span> <span>Episode Length - ' + 
+    							  show.episodelength + ' min</span></li>';
+    		});
+    	}
+    };
+
+    xhttp.open("GET", "project2/getYourlist?user=" + user, true);
+    xhttp.send();
+}
+
+window.onload = getPopular;

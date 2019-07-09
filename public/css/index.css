@@ -10,8 +10,16 @@ li {
 	list-style-type: none;
 }
 
+select {
+	width: 200px;
+}
+
 .body-container, h1 {
 	margin-left: 10px;
+}
+
+.bold {
+	font-weight: bold;
 }
 
 .checklabel {
@@ -33,6 +41,10 @@ li {
 
 .error-hidden {
 	display: none;
+}
+
+.p2-nav {
+	float: center;
 }
 
 .page-container {
@@ -65,4 +77,7 @@ li {
 	margin-right: 40px;
 }
 
-/*http://localhost:3000/*/
+#showsEditContainer, #newShowContainer {
+	float: right;
+	margin-right: 30px;
+}

@@ -11,9 +11,6 @@ var crypto = require('crypto');
 var express = require('express');
 var router = express.Router();
 
-// Global vars (sessionId - is the temporary way I'm going to do session tracking.)
-var sessionId = '';
-
 // The root of the project, since this is a SPA this typically called once
 router.get('/project2', function(req, res) {
 	var header = 'Track Your TV Shows!';
@@ -111,17 +108,17 @@ router.get('/project2/getShows', function(req, res) {
 	if (req.query.show == 'allShows') {
 		pool.query('SELECT showid, showname FROM shows ORDER BY showname ASC', (err, resp) => {
 			if (resp.rows[0] != undefined) {
-				res.end(JSON.stringify({'shows': resp.rows}));
+				res.end(JSON.stringify({'success': true, 'shows': resp.rows}));
 			} else {
-				res.end(JSON.stringify({'shows': 'failed'}));
+				res.end(JSON.stringify({'success': false}));
 			}
 		});		
 	} else {
 		pool.query('SELECT showid, showname FROM shows WHERE lower(showname) LIKE lower($1) ORDER BY showname ASC', ['%' + req.query.show + '%'], (err, resp) => {
 			if (resp.rows[0] != undefined) {
-				res.end(JSON.stringify({'shows': resp.rows}));
+				res.end(JSON.stringify({'success': true, 'shows': resp.rows}));
 			} else {
-				res.end(JSON.stringify({'shows': 'failed'}));
+				res.end(JSON.stringify({'success': false}));
 			}
 		});
 	}
@@ -181,16 +178,15 @@ router.get('/project2/getShowGenres', function(req, res) {
 				if (resp.rows[0] != undefined) {
 					genres.push(resp.rows[0].genrename);
 				} else {
-					res.end(JSON.stringify({'genres': 'failed'}));
+					res.end(JSON.stringify({'success': false}));
 				}
 
 				processed++;
 				if (processed == genreids.length) {
-					res.end(JSON.stringify({'genres': genres}));
+					res.end(JSON.stringify({'success': true, 'genres': genres}));
 				}
 			});
 		});
-		
 	});
 });
 
@@ -272,7 +268,11 @@ router.post('/project2/addShow', function(req, res) {
 				});
 			});
 		} else {
-			console.log('User not logged in, watched table not inserted.');
+			console.log('User not logged in, watched table not inserted into.');
+			watched = true;
+			if (watched && genres) {
+				res.end(JSON.stringify({'success': true}));
+			}
 		}
 
 		// Getting genre ids for showgenres table insert
@@ -295,9 +295,11 @@ router.post('/project2/addShow', function(req, res) {
 						console.log('Successful showgenres Insert.');
 					}
 
-					genres = true;
 					processed++;
-					if (watched && genres && (processed == req.body.genres.length)) {
+					if (processed == req.body.genres.length) {
+						genres = true;
+					}
+					if (watched && genres) {
 						res.end(JSON.stringify({'success': true}));
 					}
 				});
@@ -320,63 +322,75 @@ router.post('/project2/updateShow', function(req, res) {
 		req.body.ongoing,
 		req.body.showid
 	];
-	var userid = 0;
+
+	var genres = false;
+	var watched = false;
 	console.log(inputs);
 	// NOTE: I should change this to sync instead of async since these functions require each other's responses.
 	pool.query('UPDATE shows SET showname = $1, showdesc = $2, episodes = $3, showimg = $4, episodelength = $5, ongoing = $6 WHERE showid = $7', inputs, (err, resp) => {
 		if (err) {
 			console.log(err);
-			res.end(JSON.stringify({'update': 'failed'}));
+			res.end(JSON.stringify({'success': false}));
 		} else {
 			console.log('Successful shows Update.');
 		}
 
-		// Getting userid for watched table update
-		pool.query('SELECT userid FROM users WHERE username = $1', [req.session.user], (err, resp) => {
-			if (err) {
-				console.log(err);
-				res.end(JSON.stringify({'update': 'failed'}));
-			} else {
-				userid = resp.rows[0].userid;
-				console.log("User ID: " + userid);
-			}
+		if (req.session.userid) {
+			console.log("User ID: " + req.session.userid);
 			// Inserting into watched by first checking if their is an entry. If no entry insert, else update.
 			// inputs = [userid, req.body.showid, req.body.watched != '' ? req.body.watched : 0];
-			pool.query('SELECT * FROM watched WHERE userid = $1 AND showid = $2', [userid, req.body.showid], (err, resp) => {
+			pool.query('SELECT * FROM watched WHERE userid = $1 AND showid = $2', [req.session.userid, req.body.showid], (err, resp) => {
 				if (err) {
 					console.log(err);
-					res.end(JSON.stringify({'update': 'failed'}));
+					res.end(JSON.stringify({'success': false}));
 				} else if (resp.rows[0] == undefined) {
-					pool.query('INSERT INTO watched (userid, showid, watched) VALUES ($1, $2, $3)', [userid, req.body.showid, req.body.watched != '' ? req.body.watched : 0], (err, resp) => {
+					pool.query('INSERT INTO watched (userid, showid, watched) VALUES ($1, $2, $3)', [req.session.userid, req.body.showid, req.body.watched != '' ? req.body.watched : 0], (err, resp) => {
 						if (err) {
 							console.log(err);
-							res.end(JSON.stringify({'update': 'failed'}));
+							res.end(JSON.stringify({'success': false}));
 						} else {
 							console.log('Successful watched Insert.');
 						}
+
+						watched = true;
+						if (watched && genres) {
+							res.end(JSON.stringify({'success': true}));
+						}
 					});
 				} else {
-					pool.query('UPDATE watched SET userid = $1, showid = $2, watched = $3 WHERE userid = $1 AND showid = $2', [userid, req.body.showid, req.body.watched != '' ? req.body.watched : 0], (err, resp) => {
+					pool.query('UPDATE watched SET userid = $1, showid = $2, watched = $3 WHERE userid = $1 AND showid = $2', [req.session.userid, req.body.showid, req.body.watched != '' ? req.body.watched : 0], (err, resp) => {
 						if (err) {
 							console.log(err);
-							res.end(JSON.stringify({'update': 'failed'}));
+							res.end(JSON.stringify({'success': false}));
 						} else {
 							console.log('Successful watched Insert.');
+						}
+
+						watched = true;
+						if (watched && genres) {
+							res.end(JSON.stringify({'success': true}));
 						}
 					});
 					console.log('Successful watched Update.');
 				}
 			});
-		});
+		} else {
+			console.log('User not logged in, watched table not inserted into.');
+			watched = true;
+			if (watched && genres) {
+				res.end(JSON.stringify({'success': true}));
+			}
+		}
 
 		// Removing all associated genres, then getting genre ids for showgenres table update and updating the table with the new list
 		var genreids = [];
+		var processed = 0;
 		pool.query('DELETE FROM showgenres WHERE showid = $1', [req.body.showid], (err, resp) => {
 			req.body.genres.forEach(function (genre) {
 				pool.query('SELECT genreid FROM genres WHERE genrename = $1', [genre], (err, resp) => {
 					if (err) {
 						console.log(err);
-						res.end(JSON.stringify({'update': 'failed'}));
+						res.end(JSON.stringify({'success': false}));
 					} else {
 						console.log("Successful showgenre Update for: " + genre);
 					}
@@ -386,17 +400,23 @@ router.post('/project2/updateShow', function(req, res) {
 					pool.query('INSERT INTO showgenres (showid, genreid) VALUES ($1, $2)', inputs, (err, resp) => {
 						if (err) {
 							console.log(err);
-							res.end(JSON.stringify({'update': 'failed'}));
+							res.end(JSON.stringify({'success': false}));
 						} else {
 							console.log('Successful showgenres Update.');
+						}
+
+						processed++;
+						if (processed == req.body.genres.length) {
+							genres = true;
+						}
+						if (watched && genres) {
+							res.end(JSON.stringify({'success': true}));
 						}
 					});
 				});
 			});
 		});
 	});
-
-	res.end(JSON.stringify({'update': 'success'}));
 });
 
 // Gets all the list of popular shows (all shows for now)
@@ -404,9 +424,9 @@ router.get('/project2/getPopular', function(req, res) {
 	res.setHeader('Content-Type', 'application/json');
 	pool.query('SELECT showname, showimg, episodes, episodelength FROM shows ORDER BY showname ASC', (err, resp) => {
 		if (resp.rows[0] != undefined) {
-			res.end(JSON.stringify({'shows': resp.rows}));
+			res.end(JSON.stringify({'success': true, 'shows': resp.rows}));
 		} else {
-			res.end(JSON.stringify({'shows': 'failed'}));
+			res.end(JSON.stringify({'success': false}));
 		}
 	});
 });
@@ -415,39 +435,34 @@ router.get('/project2/getPopular', function(req, res) {
 // Also this is doing it by username, but should probably do it by a session variable, when we learn about those.
 router.get('/project2/getYourlist', function(req, res) {
 	res.setHeader('Content-Type', 'application/json');
-	var userid = 0;
-	var response = {'shows': []};
-	// Getting userid for watched table update
-	pool.query('SELECT userid FROM users WHERE username = $1', [req.query.user], (err, resp) => {
-		if (err) {
-			console.log(err);
-			res.end(JSON.stringify({'yourlist': 'failed'}));
-		} else {
-			userid = resp.rows[0].userid;
-			console.log("User ID: " + userid);
-		}
+	var response = {'success': true, 'shows': []};
+	if (req.session.userid) {
+		console.log("User ID: " + req.session.userid);
 
 		var watched = []
-		pool.query('SELECT * FROM watched WHERE userid = $1', [userid], (err, resp) => {
+		pool.query('SELECT * FROM watched WHERE userid = $1', [req.session.userid], (err, resp) => {
 			if (err) {
 				console.log(err);
-				res.end(JSON.stringify({'yourlist': 'failed'}));
+				res.end(JSON.stringify({'success': false}));
 			} else if (resp.rows[0] != undefined) {
 				console.log("Successful watched query");
 				watched = resp.rows;
 			} else {
 				console.log("Successful watched query - user has watched no shows.");
+				res.end(JSON.stringify({'success': true, 'shows': null}));
 			}
 
+			// Because this is async they are not coming back in order.
 			var processed = 0;
 			watched.forEach(function (show) {
-				pool.query('SELECT showname, showimg, episodes, episodelength FROM shows WHERE showid = $1 ORDER BY showname ASC', [show.showid], (err, resp) => {
+				pool.query('SELECT showid, showname, showimg, episodes, episodelength FROM shows WHERE showid = $1', [show.showid], (err, resp) => {
 					if (err) {
 						console.log(err);
-						res.end(JSON.stringify({'shows': 'failed'}));
+						res.end(JSON.stringify({'success': false}));
 					} else if (resp.rows[0] != undefined) {
 						console.log("Successful shows query");
-						response.shows.push({'showname': resp.rows[0].showname,
+						response.shows.push({'showid': resp.rows[0].showid,
+											 'showname': resp.rows[0].showname,
 											 'showimg': resp.rows[0].showimg,
 											 'episodes': resp.rows[0].episodes,
 											 'episodelength': resp.rows[0].episodelength,
@@ -462,7 +477,32 @@ router.get('/project2/getYourlist', function(req, res) {
 				});
 			});
 		});
-	});
+	} else {
+		console.log('User not signed in, get your list failed.');
+		res.end(JSON.stringify({'success': false}));
+	}
+});
+
+// Remove a show from a specific user.
+router.get('/project2/removeShow', function(req, res) {
+	res.setHeader('Content-Type', 'application/json');
+	if (req.session.userid) {
+		console.log("User ID: " + req.session.userid);
+
+		// removing the show from watched.
+		pool.query('DELETE FROM watched WHERE userid = $1 AND showid = $2', [req.session.userid, req.query.id], (err, resp) => {
+			if (err) {
+				console.log(err);
+				res.end(JSON.stringify({'success': false}));
+			} else {
+				console.log("Successfully removed show from user.");
+				res.end(JSON.stringify({'success': true}));
+			} 
+		});
+	} else {
+		console.log('User not signed in, removing from list failed.');
+		res.end(JSON.stringify({'success': false}));
+	}
 });
 
 module.exports = router;

@@ -103,6 +103,10 @@ tr:nth-child(even) {
 	margin-right: 10px;
 }
 
+.X {
+	text-align: center;
+}
+
 #showsEditContainer, #newShowContainer {
 	float: right;
 	margin-right: 30px;

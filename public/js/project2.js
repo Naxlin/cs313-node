@@ -210,6 +210,7 @@ function goTo(page) {
 	} else if (page == 'signup') {
 		getId('header').innerHTML = 'Create an Account!';		
 	} else if (page == 'tvshow') {
+		getId('header').innerHTML = 'Add a TV Show to Your List!';		
 		getGenres();
 		getShows();
 	}
@@ -413,10 +414,8 @@ function switch2Show(showid) {
 	    xhttp.onreadystatechange = function() {
 	    	if (this.readyState == 4 && this.status == 200) {
 	    		var res = JSON.parse(this.responseText);
-	    		if (res.show != 'failed' && res.watched != undefined) {
+	    		if (res.success) {
 	    			fillFields(res.show, res.watched);
-	    		} else if (res.show != 'failed') {
-	    			fillFields(res.show);
 	    		}
 	    	}
 	    };
@@ -430,7 +429,7 @@ function switch2Show(showid) {
 	    	if (this.readyState == 4 && this.status == 200) {
 	    		var res = JSON.parse(this.responseText);
 	    		console.log(res);
-	    		if (res.genres != 'failed') {
+	    		if (res.success) {
 	    			checkGenres(res.genres);
 	    		}
 	    	}
@@ -481,28 +480,32 @@ function getPopular() {
     	if (this.readyState == 4 && this.status == 200) {
     		var res = JSON.parse(this.responseText);
     		console.log(res);
-    		var list = getId('popular-container');
-			
-			var tempList = '<table class="shows-list"><tbody>' + 
-							  '<tr>' + 
-							   '<th>Show Name</th>' + 
-							   '<th>Episodes</th>' + 
-							   '<th>Length</th>' + 
-							  '</tr>';
+    		if (res.success) {
+	    		var list = getId('popular-container');
+				
+				var tempList = '<table class="shows-list"><tbody>' + 
+								  '<tr>' + 
+								   '<th>Show Name</th>' + 
+								   '<th>Episodes</th>' + 
+								   '<th>Length</th>' + 
+								   '<th>Total Time</th>' + 
+								  '</tr>';
 
-			var processed = 0;
-    		res.shows.forEach(function (show) {
-    			tempList += '<tr>' + 
-    							   '<td class="bold">' + show.showname + '</td>' +
-    							   '<td>' + show.episodes + '</td>' +
-    							   '<td>' + show.episodelength + ' min</td>' +
-    							  '</tr>';
+				var processed = 0;
+	    		res.shows.forEach(function (show) {
+	    			tempList += '<tr>' + 
+	    							   '<td class="bold">' + show.showname + '</td>' +
+	    							   '<td>' + show.episodes + '</td>' +
+	    							   '<td>' + show.episodelength + ' min</td>' +
+	    							   '<td>' + ((show.episodes * show.episodelength) / 60).toFixed(1) + ' hrs</td>' +
+	    							  '</tr>';
 
-    			processed++;
-    			if (processed == res.shows.length) {
-    				list.innerHTML = tempList + '</tbody></table>';
-    			}
-    		});
+	    			processed++;
+	    			if (processed == res.shows.length) {
+	    				list.innerHTML = tempList + '</tbody></table>';
+	    			}
+	    		});
+    		}
     	}
     };
 
@@ -519,31 +522,68 @@ function getYourlist() {
     	if (this.readyState == 4 && this.status == 200) {
     		var res = JSON.parse(this.responseText);
     		console.log(res);
-    		var list = getId('yourlist-container');
+			var list = getId('yourlist-container');
 			var tempList = '<table class="shows-list"><tbody>' + 
-							  '<tr>' + 
-							   '<th>Show Name</th>' + 
-							   '<th>Watched</th>' + 
-							   '<th>Repeats</th>' + 
-							   '<th>Length</th>' + 
-							  '</tr>';
-    		var processed = 0;
-    		res.shows.forEach(function (show) {
-    			tempList += '<tr>' + 
-    							   '<td class="bold">' + show.showname + '</td>' +
-    							   '<td>' + show.watched + '/' + show.episodes + '</td>' +
-    							   '<td>' + (show.repeated != null ? show.repeated : 0) + '</td>' +
-    							   '<td>' + show.episodelength + ' min</td>' +
-    							  '</tr>';
-    			processed++;
-    			if (processed == res.shows.length) {
-    				list.innerHTML = tempList + '</tbody></table>';
-    			}
-    		});
+							'<tr>' + 
+							 '<th>Show Name</th>' + 
+							 '<th>Watched</th>' + 
+							 '<th>Repeats</th>' + 
+							 '<th>Length</th>' + 
+							 '<th>Total Time</th>' + 
+							 '<th>Remove</th>' + 
+							'</tr>';
+
+    		if (res.success && res.shows == null) {
+    			tempList += "<tr>" +
+    						 "<td>You've watched no shows.</td>" +
+							 "<td></td><td></td><td></td><td></td><td></td>" + 
+							"</tr>"
+				list.innerHTML = tempList + '</tbody></table>';
+			} else if (res.success) {
+	    		var processed = 0;
+	    		res.shows.forEach(function (show) {
+	    			tempList += '<tr>' + 
+    						     '<td class="bold">' + show.showname + '</td>' +
+    						     '<td>' + show.watched + '/' + show.episodes + '</td>' +
+    						     '<td>' + (show.repeated != null ? show.repeated : 0) + '</td>' +
+    						     '<td>' + show.episodelength + ' min</td>' +
+    						     '<td>' + ((show.watched * show.episodelength) / 60).toFixed(1) + ' hrs</td>' +
+    						     '<td class="X"><button type="button" onclick="removeShow(' + show.showid + ')">X</button></td>' +
+    						    '</tr>';
+	    			processed++;
+	    			if (processed == res.shows.length) {
+	    				list.innerHTML = tempList + '</tbody></table>';
+	    			}
+	    		});
+    		} else {
+    			goTo('signup');
+    			tempList += "<tr>" +
+    						 "<td>You've watched no shows.</td>" +
+							 "<td></td><td></td><td></td>" + 
+							"</tr>"
+				list.innerHTML = tempList + '</tbody></table>';
+    		}
     	}
     };
 
-    xhttp.open("GET", "project2/getYourlist?user=" + user, true);
+    xhttp.open("GET", "project2/getYourlist", true);
+    xhttp.send();
+}
+
+function removeShow(showid) {
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+    	if (this.readyState == 4 && this.status == 200) {
+    		console.log(this.responseText);
+    		var res = JSON.parse(this.responseText);
+    		if (res.success) {
+    			getYourlist();
+    		} else {
+    			goTo('signup');
+    		}
+    	}
+    };
+    xhttp.open("GET", "project2/removeShow?id=" + showid, true);
     xhttp.send();
 }
 

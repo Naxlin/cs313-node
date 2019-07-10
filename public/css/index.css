@@ -14,6 +14,21 @@ select {
 	width: 200px;
 }
 
+table {
+  border-collapse: collapse;
+  width: 99%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
 .body-container, h1 {
 	margin-left: 10px;
 }

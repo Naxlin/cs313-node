@@ -4,6 +4,7 @@ const connectionString = process.env.DATABASE_URL
 const { Pool } = require('pg');
 const pool = new Pool({connectionString: connectionString});
 const express = require('express');
+const session = require('client-sessions');
 const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -15,12 +16,21 @@ app.use(express.static('public'));
 app.use(express.urlencoded());
 app.use(express.json());
 
+// SESSION SETUP:
+app.use(session({
+	cookieName: 'session',
+	secret: 'the Dalgonian fantasy starts in Konota',
+	duration: 30 * 60 * 1000,
+	activeDuration: 5 * 60 * 1000,
+}));
+
 // PROJECT MODULE:
 app.use(require('./project_modules/project2.js'));
 
 // TEAM MODULES:
 app.use(require('./team_modules/team01.js'));
 app.use(require('./team_modules/team02.js'));
+app.use(require('./team_modules/team04.js'));
 
 // SOLO MODULES:
 app.use(require('./solo_modules/solo01.js'));

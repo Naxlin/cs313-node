@@ -6,7 +6,7 @@ var router = express.Router();
 
 router.get('/team01', function(req, res) {
 	var header = 'Math Form Page';
-	var title = 'Math Application'
+	var title = 'Math Application';
 	res.render('t1form', {header: header, title: title});
 });
 

@@ -31,8 +31,8 @@ router.get('/project2/signin', function(req, res) {
 			hash = hash.digest('hex');
 
 			if (hash == resp.rows[0].password) {
+				req.session.user = req.query.user;
 				res.end(JSON.stringify({'user': req.query.user}));
-				sessionId = req.query.user;
 			} else {
 				res.end(JSON.stringify({'user': 'invalid'}));
 			}

@@ -450,12 +450,26 @@ function getPopular() {
     		var res = JSON.parse(this.responseText);
     		console.log(res);
     		var list = getId('popular-container');
-			list.innerHTML = '';
+			
+			var tempList = '<table class="shows-list"><tbody>' + 
+							  '<tr>' + 
+							   '<th>Show Name</th>' + 
+							   '<th>Episodes</th>' + 
+							   '<th>Length</th>' + 
+							  '</tr>';
+
+			var processed = 0;
     		res.shows.forEach(function (show) {
-    			list.innerHTML += '<li><span class="bold">' + show.showname +
-    							  ': </span> <span>Episodes - ' + show.episodes + 
-    							  '</span> <span>Episode Length - ' + show.episodelength +
-    							  ' min</span></li>';
+    			tempList += '<tr>' + 
+    							   '<td class="bold">' + show.showname + '</td>' +
+    							   '<td>' + show.episodes + '</td>' +
+    							   '<td>' + show.episodelength + ' min</td>' +
+    							  '</tr>';
+
+    			processed++;
+    			if (processed == res.shows.length) {
+    				list.innerHTML = tempList + '</tbody></table>';
+    			}
     		});
     	}
     };
@@ -474,13 +488,25 @@ function getYourlist() {
     		var res = JSON.parse(this.responseText);
     		console.log(res);
     		var list = getId('yourlist-container');
-			list.innerHTML = '';
+			var tempList = '<table class="shows-list">' + 
+							  '<tr>' + 
+							   '<th>Show Name</th>' + 
+							   '<th>Episodes</th>' + 
+							   '<th>Repeats</th>' + 
+							   '<th>Length</th>' + 
+							  '</tr>';
+    		var processed = 0;
     		res.shows.forEach(function (show) {
-    			list.innerHTML += '<li><span class="bold">' + show.showname +
-    							  ': </span> <span>Episodes watched - ' + show.watched +
-    							  '/' + show.episodes + '</span> <span>Repeats - ' + 
-    							  show.repeated + '</span> <span>Episode Length - ' + 
-    							  show.episodelength + ' min</span></li>';
+    			tempList += '<tr>' + 
+    							   '<td class="bold">' + show.showname + '</td>' +
+    							   '<td>' + show.episodes + '</td>' +
+    							   '<td>' + (show.repeated != null ? show.repeated : 0) + '</td>' +
+    							   '<td>' + show.episodelength + ' min</td>' +
+    							  '</tr>';
+    			processed++;
+    			if (processed == res.shows.length) {
+    				list.innerHTML = tempList + '</table>';
+    			}
     		});
     	}
     };

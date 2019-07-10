@@ -37,6 +37,12 @@ tr:nth-child(even) {
 	font-weight: bold;
 }
 
+.button {
+	font-size: 16px;
+	height: 35px;
+	width: 150px;
+}
+
 .checklabel {
 	margin-left: 10px;
 }
@@ -70,6 +76,11 @@ tr:nth-child(even) {
 	display: none;
 }
 
+.right {
+	float: right;
+	margin-right: 10px;
+}
+
 .signin {
 	margin-top: 12px;
 	color: white;
@@ -89,7 +100,7 @@ tr:nth-child(even) {
 }
 
 .space-right {
-	margin-right: 40px;
+	margin-right: 10px;
 }
 
 #showsEditContainer, #newShowContainer {

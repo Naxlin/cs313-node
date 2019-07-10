@@ -1,9 +1,22 @@
 <div id="yourlist" class="page-container-hidden">
+	<button type="button" class="button right" onclick="goTo('tvshow')">Add TV Series</button>
 	<h2>Your List</h2>
-	<button type="button" class="p2-nav" onclick="goTo('tvshow')">Add TV Series</button>
-	<br>
-	<br>
-	<ul id="yourlist-container">
-		<!-- This will be populated with a list of shows from the server -->
-	</ul>
+	<div id="yourlist-container">
+		<table class="shows-list">
+			<tbody> 
+				<tr> 
+					<th>Show Name</th>
+					<th>Watched</th>
+					<th>Repeats</th>
+					<th>Length</th>
+				</tr>
+				<tr>
+					<td>You've watched no shows.</td>
+					<td> </td>
+					<td> </td>
+					<td> </td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
 </div>

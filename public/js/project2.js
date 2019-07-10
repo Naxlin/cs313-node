@@ -54,7 +54,7 @@ function signin() {
     	if (this.readyState == 4 && this.status == 200) {
     		console.log(this.responseText);
     		var res = JSON.parse(this.responseText);
-    		if (res.user != 'invalid') {
+    		if (res.success) {
     			var active = getClass('signin');
     			var inactive = getClass('signin-hidden');
     			getId('username').innerHTML = '<b>' + res.user + '</b>';
@@ -70,11 +70,39 @@ function signin() {
     		}
     	}
     };
-    xhttp.open("GET", "project2/signin?user=" + user + "&pass=" + pass, true);
-    xhttp.send(); 
+    xhttp.open("POST", "project2/signin", true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.send(JSON.stringify({user: user, pass: pass})); 
 }
 
-function signup() {
+function signout() {
+	getId('user').value = "";
+	getId('pass').value = "";
+
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+    	if (this.readyState == 4 && this.status == 200) {
+    		console.log(this.responseText);
+    		var res = JSON.parse(this.responseText);
+    		if (res.success) {
+    			var active = getClass('signin');
+    			var inactive = getClass('signin-hidden');
+    			getId('username').innerHTML = '<b>fake username</b>';
+    			addClass(active, 'signin-hidden');
+    			active.classList.remove('signin');
+    			addClass(inactive, 'signin');
+    			inactive.classList.remove('signin-hidden');
+    			addClass(getId('signinError'), 'error-hidden');
+    			goTo('popular');
+    		}
+    	}
+    };
+    xhttp.open("GET", "project2/signout", true);
+    xhttp.send();
+}
+
+
+function signup(userAvailable = false) {
 	var user = getId('newUser').value;
 	var pass = getId('newPass').value;
 	var conf = getId('passConf').value;
@@ -83,12 +111,12 @@ function signup() {
 	addClass(getId('signinError'), 'error-hidden');
 
 	// Validate the username
-	if (!validateUser(user)) {
-		getId('signupErrorUser').classList.remove('error-hidden');
-		return
-	} else {
+	if (validateUser(user) || userAvailable) {
 		addClass(getId('signupErrorUser'), 'error-hidden');
 		addClass(getId('signupErrorUsrTkn'), 'error-hidden');
+	} else {
+		getId('signupErrorUser').classList.remove('error-hidden');
+		return
 	}
 
 	// Validate the password
@@ -109,27 +137,27 @@ function signup() {
 		addClass(getId('signupErrorDifPas'), 'error-hidden');
 	}
 
-	var request = {user: user, pass: pass};
-
 	var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
     	if (this.readyState == 4 && this.status == 200) {
     		console.log(this.responseText);
     		var res = JSON.parse(this.responseText);
-			goTo('yourlist');
-			var active = getClass('signin');
-			var inactive = getClass('signin-hidden');
-			getId('username').innerHTML = '<b>' + res.user + '</b>';
-			addClass(active, 'signin-hidden');
-			active.classList.remove('signin');
-			addClass(inactive, 'signin');
-			inactive.classList.remove('signin-hidden');
-			addClass(getId('signinError'), 'error-hidden');
+			if (res.success) {
+				var active = getClass('signin');
+				var inactive = getClass('signin-hidden');
+				getId('username').innerHTML = '<b>' + res.user + '</b>';
+				addClass(active, 'signin-hidden');
+				active.classList.remove('signin');
+				addClass(inactive, 'signin');
+				inactive.classList.remove('signin-hidden');
+				addClass(getId('signinError'), 'error-hidden');
+				goTo('yourlist');
+			}
     	}
     };
     xhttp.open("POST", "project2/signup", true);
     xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.send(JSON.stringify(request));
+    xhttp.send(JSON.stringify({user: user, pass: pass}));
 }
 
 // Signup validation functions:
@@ -153,16 +181,18 @@ function validateUser(user) {
     	if (this.readyState == 4 && this.status == 200) {
     		console.log(this.responseText);
     		var res = JSON.parse(this.responseText);
-    		if (res.user == 'invalid') {
+    		if (res.success) {
+    			signup(true);
+    		} else {
     			addClass(getId('signupErrorUser'), 'error-hidden');
 				getId('signupErrorUsrTkn').classList.remove('error-hidden');
     		}
     	}
     };
-    xhttp.open("GET", "project2/userExists?user=" + user, true);
-    xhttp.send();
-
-    return true;
+    xhttp.open("POST", "project2/userExists", true);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.send(JSON.stringify({user: user}));
+    return false;
 }
 
 // Navigation function:
@@ -191,7 +221,7 @@ function getGenres() {
     xhttp.onreadystatechange = function() {
     	if (this.readyState == 4 && this.status == 200) {
     		var res = JSON.parse(this.responseText);
-    		if (res.genres != 'failed') {
+    		if (res.success) {
     			getId('genrelist').innerHTML = '';
 				getId('newgenrelabel').style.display = 'none';
 				getId('newgenrelist').innerHTML = '';
@@ -214,7 +244,7 @@ function getShows(show = 'allShows') {
     xhttp.onreadystatechange = function() {
     	if (this.readyState == 4 && this.status == 200) {
     		var res = JSON.parse(this.responseText);
-    		if (res.shows != 'failed') {
+    		if (res.success) {
     			toggleShowAddorUpdate(true, true);
 				getId('showsEdit').innerHTML = '';
 				res.shows.forEach(function (item) {
@@ -240,11 +270,7 @@ function addGenre() {
     	if (this.readyState == 4 && this.status == 200) {
     		console.log(this.responseText);
     		var res = JSON.parse(this.responseText);
-			if (res.insert == 'failed') {
-				console.log("Error: Server couldn't insert genre.");
-			} else if (res.insert == 'taken') {
-				getId('genreErrorAdd').classList.remove('error-hidden');
-			} else {
+			if (res.success) {
 				addClass(getId('genreErrorAdd'), 'error-hidden');
 				getId('newgenrelabel').style.display = 'inline-block';
 				getId('newgenrelist').innerHTML += '<li><input type="' + 
@@ -252,6 +278,13 @@ function addGenre() {
 						res.insert + '"><label class="checklabel">' + 
 						res.insert + '</label></li>';
 				getId('newgenre').value = '';
+			} else {
+				if (res.insert == 'taken') {
+					getId('genreErrorAdd').classList.remove('error-hidden');
+				}
+				if (res.insert == 'failed') {
+					console.log("Error: Server couldn't insert genre.");
+				}
 			}
     	}
     };
@@ -338,7 +371,6 @@ function getDOMShowVars() {
 	}
 
 	var request = {
-		user: getId('username').children[0].innerHTML,
 		show: show.value, 
 		desc: desc.value,
 		img: img.value,
@@ -389,8 +421,8 @@ function switch2Show(showid) {
 	    	}
 	    };
 
-	    var user = getId('username').children[0].innerHTML;
-	    xhttp.open("GET", "project2/getShow?id=" + showid + '&user=' + user, true);
+	    // var user = getId('username').children[0].innerHTML;
+	    xhttp.open("GET", "project2/getShow?id=" + showid, true);
 	    xhttp.send();
 
 	    var xhttp = new XMLHttpRequest();
@@ -488,10 +520,10 @@ function getYourlist() {
     		var res = JSON.parse(this.responseText);
     		console.log(res);
     		var list = getId('yourlist-container');
-			var tempList = '<table class="shows-list">' + 
+			var tempList = '<table class="shows-list"><tbody>' + 
 							  '<tr>' + 
 							   '<th>Show Name</th>' + 
-							   '<th>Episodes</th>' + 
+							   '<th>Watched</th>' + 
 							   '<th>Repeats</th>' + 
 							   '<th>Length</th>' + 
 							  '</tr>';
@@ -499,13 +531,13 @@ function getYourlist() {
     		res.shows.forEach(function (show) {
     			tempList += '<tr>' + 
     							   '<td class="bold">' + show.showname + '</td>' +
-    							   '<td>' + show.episodes + '</td>' +
+    							   '<td>' + show.watched + '/' + show.episodes + '</td>' +
     							   '<td>' + (show.repeated != null ? show.repeated : 0) + '</td>' +
     							   '<td>' + show.episodelength + ' min</td>' +
     							  '</tr>';
     			processed++;
     			if (processed == res.shows.length) {
-    				list.innerHTML = tempList + '</table>';
+    				list.innerHTML = tempList + '</tbody></table>';
     			}
     		});
     	}

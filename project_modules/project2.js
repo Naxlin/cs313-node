@@ -22,24 +22,36 @@ router.get('/project2', function(req, res) {
 });
 
 // Confirming a signin against the database users
-router.get('/project2/signin', function(req, res) {
+router.post('/project2/signin', function(req, res) {
 	res.setHeader('Content-Type', 'application/json');
-	pool.query('SELECT username, password, salt FROM users where username = $1', [req.query.user], (err, resp) => {
+	pool.query('SELECT userid, username, password, salt FROM users where username = $1', [req.body.user], (err, resp) => {
 		if (resp.rows[0] != undefined) {
 			var hash = crypto.createHmac('sha512', resp.rows[0].salt);
-			hash.update(req.query.pass);
+			hash.update(req.body.pass);
 			hash = hash.digest('hex');
 
 			if (hash == resp.rows[0].password) {
-				req.session.user = req.query.user;
-				res.end(JSON.stringify({'user': req.query.user}));
+				req.session.user = req.body.user;
+				req.session.userid = resp.rows[0].userid;
+				res.end(JSON.stringify({'success': true, 'user': req.body.user}));
 			} else {
-				res.end(JSON.stringify({'user': 'invalid'}));
+				res.end(JSON.stringify({'success': false}));
 			}
 		} else {
-			res.end(JSON.stringify({'user': 'invalid'}));
+			res.end(JSON.stringify({'success': false}));
 		}
 	});
+});
+
+// Confirming a signin against the database users
+router.get('/project2/signout', function(req, res) {
+	res.setHeader('Content-Type', 'application/json');
+	if (req.session.user) {
+		req.session.reset();
+		res.end(JSON.stringify({'success': true}));
+	} else {
+		res.end(JSON.stringify({'success': false}));
+	}
 });
 
 // Putting a new user and their other credentials into the database
@@ -56,23 +68,27 @@ router.post('/project2/signup', function(req, res) {
 	pool.query('INSERT INTO users (username, password, salt) VALUES ($1, $2, $3)', [req.body.user, hash, salt], (err, resp) => {
 		if (err) {
 			console.log(err);
-			res.end(JSON.stringify({'user': 'invalid'}));
+			res.end(JSON.stringify({'success': false}));
 		} else {
-			res.end(JSON.stringify({'user': req.body.user}));
-			sessionId = req.body.user;
+			req.session.user = req.body.user;
+
+			// Get the userid for the session variable.
+			pool.query('SELECT userid FROM users WHERE username = $1', [req.body.user], (err, resp) => {
+				req.session.userid = resp.rows[0].userid;
+				res.end(JSON.stringify({'success': true, 'user': req.body.user}));
+			});
 		}
 	});
-
 });
 
 // Checks if the user exists (making sure that duplicate users won't happen)
-router.get('/project2/userExists', function(req, res) {
+router.post('/project2/userExists', function(req, res) {
 	res.setHeader('Content-Type', 'application/json');
-	pool.query('SELECT username FROM users where username = $1', [req.query.user], (err, resp) => {
+	pool.query('SELECT username FROM users where username = $1', [req.body.user], (err, resp) => {
 		if (resp.rows[0] == undefined) {
-			res.end(JSON.stringify({'user': req.query.user}));
+			res.end(JSON.stringify({'success': true, 'user': req.body.user}));
 		} else {
-			res.end(JSON.stringify({'user': 'invalid'}));
+			res.end(JSON.stringify({'success': false}));
 		}
 	});
 });
@@ -82,9 +98,9 @@ router.get('/project2/getGenres', function(req, res) {
 	res.setHeader('Content-Type', 'application/json');
 	pool.query('SELECT genrename FROM genres ORDER BY genrename ASC', (err, resp) => {
 		if (resp.rows[0] != undefined) {
-			res.end(JSON.stringify({'genres': resp.rows}));
+			res.end(JSON.stringify({'success': true, 'genres': resp.rows}));
 		} else {
-			res.end(JSON.stringify({'genres': 'failed'}));
+			res.end(JSON.stringify({'success': false}));
 		}
 	});
 });
@@ -114,14 +130,14 @@ router.get('/project2/getShows', function(req, res) {
 // Gets the details of a specific show, and how many episodes you've watched.
 router.get('/project2/getShow', function(req, res) {
 	res.setHeader('Content-Type', 'application/json');
-	var response = {};
+	var response = {'success': true};
 	var show = false;
 	var watched = false;
 	pool.query('SELECT * FROM shows where showid = $1', [req.query.id], (err, resp) => {
 		if (resp.rows[0] != undefined) {
 			response.show = resp.rows[0];
 		} else {
-			res.end(JSON.stringify({'show': 'failed'}));
+			res.end(JSON.stringify({'success': false}));
 		}
 		show = true;
 		if (show && watched) {
@@ -129,12 +145,8 @@ router.get('/project2/getShow', function(req, res) {
 		}
 	});
 
-	pool.query('SELECT userid FROM users where username = $1', [req.query.user], (err, resp) => {
-		if (resp.rows[0] != undefined) {
-			userid = resp.rows[0].userid;
-		} 
-
-		pool.query('SELECT watched FROM watched where showid = $1 AND userid = $2', [req.query.id, userid], (err, resp) => {
+	if (req.session.userid) {
+		pool.query('SELECT watched FROM watched where showid = $1 AND userid = $2', [req.query.id, req.session.userid], (err, resp) => {
 			if (resp.rows[0] != undefined) {
 				response.watched = resp.rows[0];
 			} 
@@ -143,7 +155,14 @@ router.get('/project2/getShow', function(req, res) {
 				res.end(JSON.stringify(response));
 			}
 		});
-	});
+	} else {
+		response.watched = 0;
+
+		watched = true;
+		if (show && watched) {
+			res.end(JSON.stringify(response));
+		}
+	}
 });
 
 router.get('/project2/getShowGenres', function(req, res) {
@@ -184,13 +203,13 @@ router.post('/project2/addGenre', function(req, res) {
 			pool.query('INSERT INTO genres (genrename) VALUES ($1)', [req.body.genre], (err, resp) => {
 				if (err) {
 					console.log(err);
-					res.end(JSON.stringify({'insert': 'failed'}));
+					res.end(JSON.stringify({'success': false, 'insert': 'failed'}));
 				} else {
-					res.end(JSON.stringify({'insert': req.body.genre}));
+					res.end(JSON.stringify({'success': true, 'insert': req.body.genre}));
 				}
 			});
 		} else {
-			res.end(JSON.stringify({'insert': 'taken'}));
+			res.end(JSON.stringify({'success': false, 'insert': 'taken'}));
 		}
 	});
 });
@@ -210,76 +229,81 @@ router.post('/project2/addShow', function(req, res) {
 		req.body.length != '' ? parseInt(req.body.length) : 20,
 		req.body.ongoing
 	];
-	var userid = 0;
 	var showid = 0;
+	var genres = false;
+	var watched = false;
 	console.log(inputs);
 	// NOTE: I should change this to sync instead of async since these functions require each other's responses.
 	pool.query('INSERT INTO shows (showname, showdesc, episodes, showimg, episodelength, ongoing) VALUES ($1, $2, $3, $4, $5, $6)', inputs, (err, resp) => {
 		if (err) {
 			console.log(err);
-			res.end(JSON.stringify({'insert': 'failed'}));
+			res.end(JSON.stringify({'success': false}));
 		} else {
 			console.log('Successful shows Insert.');
 		}
 
 		// Getting userid for watched table insert
-		pool.query('SELECT userid FROM users WHERE username = $1', [req.body.user], (err, resp) => {
-			if (err) {
-				console.log(err);
-				res.end(JSON.stringify({'insert': 'failed'}));
-			} else {
-				userid = resp.rows[0].userid;
-				console.log("User ID: " + userid);
-			}
+		if (req.session.userid) {
+			console.log("User ID: " + req.session.userid);
 			// Getting showid for watched and showgenres table inserts
 			pool.query('SELECT showid FROM shows WHERE showname = $1', [req.body.show], (err, resp) => {
 				if (err) {
 					console.log(err);
-					res.end(JSON.stringify({'insert': 'failed'}));
+					res.end(JSON.stringify({'success': false}));
 				} else {
 					showid = resp.rows[0].showid;
 					console.log("Show ID: " + showid);
 				}
 
 				// Inserting into watched
-				inputs = [userid, showid, req.body.watched != '' ? req.body.watched : 0];
+				inputs = [req.session.userid, showid, req.body.watched != '' ? req.body.watched : 0];
 				pool.query('INSERT INTO watched (userid, showid, watched) VALUES ($1, $2, $3)', inputs, (err, resp) => {
 					if (err) {
 						console.log(err);
-						res.end(JSON.stringify({'insert': 'failed'}));
+						res.end(JSON.stringify({'success': false}));
 					} else {
 						console.log('Successful watched Insert.');
 					}
+
+					watched = true;
+					if (watched && genres) {
+						res.end(JSON.stringify({'success': true}));
+					}
 				});
 			});
-		});
+		} else {
+			console.log('User not logged in, watched table not inserted.');
+		}
 
 		// Getting genre ids for showgenres table insert
 		var genreids = [];
+		var processed = 0;
 		req.body.genres.forEach(function (genre) {
 			pool.query('SELECT genreid FROM genres WHERE genrename = $1', [genre], (err, resp) => {
 				if (err) {
 					console.log(err);
-					res.end(JSON.stringify({'insert': 'failed'}));
+					res.end(JSON.stringify({'success': false}));
 				} 
 
 				// Inserting into showgenres
-				// genreids.forEach(function (id) {
 				inputs = [showid, resp.rows[0].genreid];
 				pool.query('INSERT INTO showgenres (showid, genreid) VALUES ($1, $2)', inputs, (err, resp) => {
 					if (err) {
 						console.log(err);
-						res.end(JSON.stringify({'insert': 'failed'}));
+						res.end(JSON.stringify({'success': false}));
 					} else {
 						console.log('Successful showgenres Insert.');
 					}
-			    // });
+
+					genres = true;
+					processed++;
+					if (watched && genres && (processed == req.body.genres.length)) {
+						res.end(JSON.stringify({'success': true}));
+					}
 				});
 			});
 		});
 	});
-
-	res.end(JSON.stringify({'insert': 'success'}));
 });
 
 // Updating a show in the database
@@ -308,7 +332,7 @@ router.post('/project2/updateShow', function(req, res) {
 		}
 
 		// Getting userid for watched table update
-		pool.query('SELECT userid FROM users WHERE username = $1', [req.body.user], (err, resp) => {
+		pool.query('SELECT userid FROM users WHERE username = $1', [req.session.user], (err, resp) => {
 			if (err) {
 				console.log(err);
 				res.end(JSON.stringify({'update': 'failed'}));

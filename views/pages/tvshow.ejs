@@ -1,71 +1,67 @@
 <div id="tvshow" class="page-container-hidden">
 	<h2>Add a TV Show to Your List</h2>
 	<br>
-	<div id="newShowContainer" style="display: none;">
-		<h4>Add a New Show</h4>
-		<p>This will go to a new show page, clearing all fields.</p>
-		<button type="button" onclick="switch2Show(0)">New Show</button>
-		<br>
-		<br>
+	<div class="p2showoptions-container">
+		<div id="newShowContainer" style="display: none;">
+			<h4>Add a New Show</h4>
+			<p>Add a new show (clears all fields).</p>
+			<table>
+				<td>
+					<button type="button" class="full" onclick="switch2Show(0)">New Show</button>
+				</td>
+			</table>
+		</div>
+		<div id="showsEditContainer">
+			<h4>Shows We Have</h4>
+			<p>This updates as you type a show name</p>
+			<table id="showsEdit">
+			</table>
+		</div>
 	</div>
-	<div id="showsEditContainer">
-		<h4>Shows We Have</h4>
-		<p>This will update as you type in a show name below.</p>
-		<ul id="showsEdit">
-		</ul>
+	<div class="p2form-container">
+		<div class="p2genre-container">
+			<div id="genreErrorAdd" class="error-hidden">
+				<p class="error">Error: this genre already exists!</p>
+			</div>
+			<h4>Genres</h4>
+			<ul id="genrelist">
+			</ul>
+			<h4 id="newgenrelabel" style="display: none;">New Genres</h4>
+			<ul id="newgenrelist">
+			</ul>
+			<input id="newgenre" type="text" placeholder="Genre Name">
+			<button type="button" class="button" onclick="addGenre()">Add New Genre</button>
+		</div>
+		<label for="showname">Show Name: </label>
+		<input id="showname" type="text" placeholder="Show Name" onkeyup="getShows(this.value)">
 		<br>
 		<br>
+		<!-- Eventually update this to upload a photo. -->
+		<label for="showimg">Show Image: </label>
+		<input id="showimg" type="text" placeholder="URL to show image">
+		<br>
+		<br>
+		<label for="episodes">Episodes: </label>
+		<input id="episodes" type="number" placeholder="Total show episodes?">
+		<br>
+		<br>
+		<label for="watched">Watched: </label>
+		<input id="watched" type="number" placeholder="Episodes watched?">
+		<br>
+		<br>
+		<label for="length">Episode Length: </label>
+		<input id="length" type="number" placeholder="How long are they?">
+		<br>
+		<br>
+		<input id="ongoing" type="checkbox">
+		<label for="ongoing" class="checklabel">Is the show still ongoing?</label>
+		<br>
+		<br>
+		<label>Show Description: </label>
+		<br>
+		<textarea id="showdesc" placeholder="Show Description" rows="6" cols="52"></textarea>
+		<br>
+		<button id="addShow" type="button" class="button" onclick="addShow()">Add Show</button>
+		<button id="updateShow" type="button" class="button" onclick="updateShow()" style="display: none;">Update Show</button>
 	</div>
-	<br>
-	<label for="showname">Show Name: </label>
-	<input id="showname" type="text" placeholder="Show Name" onkeyup="getShows(this.value)">
-	<br>
-	<br>
-	<label>Show Description: </label>
-	<br>
-	<textarea id="showdesc" placeholder="Show Description" rows="6" cols="60"></textarea>
-	<br>
-	<br>
-	<!-- Eventually update this to upload a photo. -->
-	<label for="showimg">Show Image: </label>
-	<input id="showimg" type="text" placeholder="URL to show image">
-	<br>
-	<br>
-	<label for="episodes">Episodes: </label>
-	<input id="episodes" type="number" placeholder="Total show episodes?">
-	<br>
-	<br>
-	<label for="watched">Watched: </label>
-	<input id="watched" type="number" placeholder="Episodes watched?">
-	<br>
-	<br>
-	<label for="length">Episode Length: </label>
-	<input id="length" type="number" placeholder="How long are they?">
-	<br>
-	<br>
-	<input id="ongoing" type="checkbox">
-	<label for="ongoing" class="checklabel">Ongoing?</label>
-	<br>
-	<br>
-	
-	<div id="genreErrorAdd" class="error-hidden">
-		<p class="error">Error adding genre, this genre already exists!</p>
-		<br>
-	</div>
-	<label>Genres: </label>
-	<ul id="genrelist">
-	</ul>
-	<label id="newgenrelabel" style="display: none;">Recently Added: </label>
-	<ul id="newgenrelist">
-	</ul>
-	<br>
-
-	<label for="newgenre">New Genre: </label>
-	<input id="newgenre" type="text" placeholder="Genre Name">
-	<button type="button" onclick="addGenre()">Add Genre</button>
-
-	<br>
-	<br>
-	<button id="addShow" type="button" onclick="addShow()">Add Show</button>
-	<button id="updateShow" type="button" onclick="updateShow()" style="display: none;">Update Show</button>
 </div>

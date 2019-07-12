@@ -249,7 +249,7 @@ function getShows(show = 'allShows') {
     			toggleShowAddorUpdate(true, true);
 				getId('showsEdit').innerHTML = '';
 				res.shows.forEach(function (item) {
-    				getId('showsEdit').innerHTML += '<li><button type="button" onclick="switch2Show(' + item.showid + ')">' + item.showname + '</button></li><br>';
+    				getId('showsEdit').innerHTML += '<td><button type="button" class="full" onclick="switch2Show(' + item.showid + ')">' + item.showname + '</button></td>';
     			})
     		} else {
     			toggleShowAddorUpdate(false, false);
@@ -318,6 +318,9 @@ function addShow() {
 function updateShow() {
 	console.log("Update Show");
 	var request = getDOMShowVars();
+	if (!request) {
+		return // Don't continue, because the show isn't filled out enough.
+	}
 	request.showid = selectedShowId;
 
 	console.log(request);
@@ -354,19 +357,19 @@ function getDOMShowVars() {
 	// Verifying required fields
 	if (show.value == '') {
 		addClass(getId('showname'), 'error-border')
-		return
+		return false;
 	} else {
 		getId('showname').classList.remove('error-border');
 	}
 	if (desc.value == '') {
 		addClass(getId('showdesc'), 'error-border')
-		return
+		return false;
 	} else {
 		getId('showdesc').classList.remove('error-border');
 	}
 	if (epis.value == '') {
 		addClass(getId('episodes'), 'error-border')
-		return
+		return false;
 	} else {
 		getId('episodes').classList.remove('error-border');
 	}
@@ -541,13 +544,17 @@ function getYourlist() {
 				list.innerHTML = tempList + '</tbody></table>';
 			} else if (res.success) {
 	    		var processed = 0;
+	    		var repeat = 0;
+	    		var epl = 0;
 	    		res.shows.forEach(function (show) {
+	    			repeat = show.repeated != null ? show.repeated : 0;
+	    			epl = show.episodelength;
 	    			tempList += '<tr>' + 
     						     '<td class="bold">' + show.showname + '</td>' +
     						     '<td>' + show.watched + '/' + show.episodes + '</td>' +
-    						     '<td>' + (show.repeated != null ? show.repeated : 0) + '</td>' +
-    						     '<td>' + show.episodelength + ' min</td>' +
-    						     '<td>' + ((show.watched * show.episodelength) / 60).toFixed(1) + ' hrs</td>' +
+    						     '<td>' + repeat + '</td>' +
+    						     '<td>' + epl + ' min</td>' +
+    						     '<td>' + ((show.watched * epl + (epl * repeat)) / 60).toFixed(1) + ' hrs</td>' +
     						     '<td class="X"><button type="button" onclick="removeShow(' + show.showid + ')">X</button></td>' +
     						    '</tr>';
 	    			processed++;

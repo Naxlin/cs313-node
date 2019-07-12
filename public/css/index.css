@@ -1,9 +1,35 @@
 body {
+	background-color: blanchedalmond;
 	overflow-x: hidden;
 }
 
 h1 {
 	margin-bottom: 20px;
+}
+
+/* This makes the heading look like a pencil xD */
+/*h2 {
+    background-color: goldenrod;
+    border: 1px solid black;
+    border-left: 30px solid pink;
+    border-right: 20px solid black;
+    border-radius: 10px 50% 50% 10px;
+    margin: 0px;
+    margin-bottom: 10px;
+    margin-top: -10px;
+    padding: 10px;
+    width: 50%;
+}*/
+
+h2 {
+	background-color: #d7aa80;
+	border: 1px solid black;
+	border-radius: 10px;
+	margin: 0px;
+	margin-bottom: 10px;
+	margin-top: -10px;
+	padding: 10px;
+	width: 50%;
 }
 
 li {
@@ -15,18 +41,20 @@ select {
 }
 
 table {
-  border-collapse: collapse;
-  width: 99%;
+	background-color: #cfcfaf;
+	border-collapse: collapse;
+  	width: 99%;
 }
 
 td, th {
-  border: 1px solid #dddddd;
+  border: 1px solid #afafaf;
   text-align: left;
   padding: 8px;
 }
 
 tr:nth-child(even) {
-  background-color: #dddddd;
+  background-color: blanchedalmond;
+  color: black;
 }
 
 .body-container, h1 {
@@ -40,6 +68,7 @@ tr:nth-child(even) {
 .button {
 	font-size: 16px;
 	height: 35px;
+	margin-top: 8px;
 	width: 150px;
 }
 
@@ -64,6 +93,65 @@ tr:nth-child(even) {
 	display: none;
 }
 
+.full {
+	width: 100%;
+}
+
+.p2form-container {
+	background-color: #cfcfaf;
+	border: 1px solid black;
+	border-radius: 10px;
+	padding: 10px;
+	width: 50%;
+}
+
+.p2form-container label {
+	float: left;
+	position: absolute;
+}
+
+.p2form-container input {
+	margin-left: 120px;
+	margin-top: -2px;
+}
+
+.p2form-container input[type='checkbox'] {
+	margin-left: 10px;
+	margin-top: -2px;
+}
+
+.p2genre-container {
+	float: right;
+	margin-top: -10px;
+	width: 200px;
+}
+
+.p2genre-container h4 {
+	margin-left: 38px;
+}
+
+.p2genre-container input {
+	margin-left: 0px;
+}
+
+.p2genre-container input[type='text'] {
+	margin-left: 10px;
+}
+
+.p2genre-container button {
+	margin: 10px;
+	margin-left: 25px;
+}
+
+.p2showoptions-container {
+	background-color: #cfcfaf;
+	border: 1px solid black;
+	border-radius: 10px;
+	float: right;
+	margin-right: 10px;
+	padding: 10px;
+}
+
 .p2-nav {
 	float: center;
 }
@@ -78,7 +166,7 @@ tr:nth-child(even) {
 
 .right {
 	float: right;
-	margin-right: 10px;
+	margin-right: 12px;
 }
 
 .signin {
@@ -105,9 +193,4 @@ tr:nth-child(even) {
 
 .X {
 	text-align: center;
-}
-
-#showsEditContainer, #newShowContainer {
-	float: right;
-	margin-right: 30px;
 }
